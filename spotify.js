@@ -18,7 +18,7 @@ function timeFormat(seconds) {
 
 async function getSongs(folder) {
     currFolder = folder;
-    let response = await fetch(`http://127.0.0.1:5500/CloneSpotify/${folder}/`);
+    let response = await fetch(`./CloneSpotify/${folder}/`);
     let text = await response.text();
 
     let div = document.createElement("div");
@@ -37,14 +37,14 @@ async function getSongs(folder) {
     for (const song of songs) {
         songUL.innerHTML += `
             <li>
-                <img class="invert" src="Images/music.svg" alt="">
+                <img class="invert" src="./Images/music.svg" alt="">
                 <div class="info">
                     <div>${song.replaceAll("%20", " ")}</div>
                     <div>Manan</div>
                 </div>
                 <div class="playnow">
                     <span>Play Now</span>
-                    <img class="invert" src="Images/play.svg" alt="">
+                    <img class="invert" src="./Images/play.svg" alt="">
                 </div>
             </li>`;
     }
@@ -60,17 +60,17 @@ async function getSongs(folder) {
 }
 
 const playmusic = (track, pause = false) => {
-    currentSong.src = `http://127.0.0.1:5500/CloneSpotify/CloneSpotify/${currFolder}/` + track;
+    currentSong.src = `./CloneSpotify/CloneSpotify/${currFolder}/` + track;
     if (!pause) {
         currentSong.play();
-        playbtn.src = "Images/pause.svg";
+        playbtn.src = "./Images/pause.svg";
     }
     document.querySelector(".songinfo").innerHTML = decodeURI(track);
     document.querySelector(".songtime").innerHTML = "00:00 / 00:00";
 };
 
 async function displayAlbums() {
-    let a = await fetch(`http://127.0.0.1:5500/CloneSpotify/CloneSpotify/songs/`);
+    let a = await fetch(`./CloneSpotify/CloneSpotify/songs/`);
     let response = await a.text();
     let div = document.createElement("div");
     div.innerHTML = response;
@@ -82,7 +82,7 @@ async function displayAlbums() {
 
         if (e.href.includes("/songs")) {
             let folder = e.href.split("/").slice(-2)[0];
-            let albumInfo = await fetch(`http://127.0.0.1:5500/CloneSpotify/CloneSpotify/songs/${folder}/info.json`);
+            let albumInfo = await fetch(`./CloneSpotify/CloneSpotify/songs/${folder}/info.json`);
             let response = await albumInfo.json();
 
             cardContainer.innerHTML += `
@@ -94,7 +94,7 @@ async function displayAlbums() {
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M17.5 12L9.5 8V16L17.5 12Z" fill="black" />
                         </svg>
                     </div>
-                    <img src="http://127.0.0.1:5500/CloneSpotify/CloneSpotify/songs/${folder}/cover.jpeg" alt="Cover Image">
+                    <img src="./CloneSpotify/CloneSpotify/songs/${folder}/cover.jpeg" alt="Cover Image">
                     <h2>${response.title}</h2>
                     <p>${response.description}</p>
                 </div>`;
@@ -119,10 +119,10 @@ async function main() {
     playbtn.addEventListener("click", () => {
         if (currentSong.paused) {
             currentSong.play();
-            playbtn.src = "Images/pause.svg";
+            playbtn.src = "./Images/pause.svg";
         } else {
             currentSong.pause();
-            playbtn.src = "Images/play.svg";
+            playbtn.src = "./Images/play.svg";
         }
     });
 
@@ -164,12 +164,12 @@ async function main() {
     });
 
     document.querySelector(".volume > img").addEventListener("click",e=>{
-        if(e.target.src.includes("Images/volume.svg")){
-            e.target.src= e.target.src.replace("Images/volume.svg","Images/mute.svg");
+        if(e.target.src.includes("./Images/volume.svg")){
+            e.target.src= e.target.src.replace("./Images/volume.svg","./Images/mute.svg");
             currentSong.volume = 0;
             document.querySelector(".range").getElementsByTagName("input")[0].value = 0;
         }else{
-            e.target.src= e.target.src.replace("Images/mute.svg","Images/volume.svg")
+            e.target.src= e.target.src.replace("./Images/mute.svg","./Images/volume.svg")
             currentSong.volume = 0.1;
             document.querySelector(".range").getElementsByTagName("input")[0].value = 10;
         }
