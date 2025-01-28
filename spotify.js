@@ -18,7 +18,7 @@ function timeFormat(seconds) {
 
 async function getSongs(folder) {
     currFolder = folder;
-    let response = await fetch(`./CloneSpotify/${folder}/`);
+    let response = await fetch(`./${folder}/`);
     let text = await response.text();
 
     let div = document.createElement("div");
@@ -60,7 +60,7 @@ async function getSongs(folder) {
 }
 
 const playmusic = (track, pause = false) => {
-    currentSong.src = `./CloneSpotify/CloneSpotify/${currFolder}/` + track;
+    currentSong.src = `./${currFolder}/` + track;
     if (!pause) {
         currentSong.play();
         playbtn.src = "./Images/pause.svg";
@@ -70,7 +70,7 @@ const playmusic = (track, pause = false) => {
 };
 
 async function displayAlbums() {
-    let a = await fetch(`./CloneSpotify/CloneSpotify/songs/`);
+    let a = await fetch(`./songs/`);
     let response = await a.text();
     let div = document.createElement("div");
     div.innerHTML = response;
@@ -82,7 +82,7 @@ async function displayAlbums() {
 
         if (e.href.includes("/songs")) {
             let folder = e.href.split("/").slice(-2)[0];
-            let albumInfo = await fetch(`./CloneSpotify/CloneSpotify/songs/${folder}/info.json`);
+            let albumInfo = await fetch(`./songs/${folder}/info.json`);
             let response = await albumInfo.json();
 
             cardContainer.innerHTML += `
@@ -94,7 +94,7 @@ async function displayAlbums() {
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M17.5 12L9.5 8V16L17.5 12Z" fill="black" />
                         </svg>
                     </div>
-                    <img src="./CloneSpotify/CloneSpotify/songs/${folder}/cover.jpeg" alt="Cover Image">
+                    <img src="./songs/${folder}/cover.jpeg" alt="Cover Image">
                     <h2>${response.title}</h2>
                     <p>${response.description}</p>
                 </div>`;
