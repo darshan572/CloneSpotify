@@ -14,7 +14,7 @@ function timeFormat(seconds) {
 async function getSongs(folder) {
     currFolder = folder;
     try {
-        let response = await fetch(`/${folder}/`);
+        let response = await fetch(`./${folder}/`);
         if (!response.ok) throw new Error('Network response was not ok');
 
         let text = await response.text();
@@ -24,7 +24,7 @@ async function getSongs(folder) {
 
         songs = Array.from(as)
             .filter(element => element.href.endsWith(".mp3"))
-            .map(element => decodeURIComponent(element.href.split(`/${folder}/`)[1]));
+            .map(element => decodeURIComponent(element.href.split(`/${folder}/`).pop()));
 
         console.log('Fetched songs:', songs);
 
@@ -33,14 +33,14 @@ async function getSongs(folder) {
         for (const song of songs) {
             songUL.innerHTML += `
                 <li>
-                    <img class="invert" src="Images/music.svg" alt="">
+                    <img class="invert" src="./Images/music.svg" alt="">
                     <div class="info">
                         <div>${song.replace(/%20/g, " ")}</div>
                         <div>Unknown Artist</div>
                     </div>
                     <div class="playnow">
                         <span>Play Now</span>
-                        <img class="invert" src="Images/play.svg" alt="">
+                        <img class="invert" src="./Images/play.svg" alt="">
                     </div>
                 </li>`;
         }
@@ -56,10 +56,10 @@ async function getSongs(folder) {
 }
 
 const playmusic = (track, pause = false) => {
-    currentSong.src = `/${currFolder}/${track}`;
+    currentSong.src = `./${currFolder}/${track}`;
     if (!pause) {
         currentSong.play().catch(error => console.error('Error playing song:', error));
-        document.querySelector("#playbtn").src = "Images/pause.svg";
+        document.querySelector("#playbtn").src = "./Images/pause.svg";
     }
     document.querySelector(".songinfo").innerHTML = track;
     document.querySelector(".songtime").innerHTML = "00:00 / 00:00";
@@ -67,7 +67,7 @@ const playmusic = (track, pause = false) => {
 
 async function displayAlbums() {
     try {
-        let response = await fetch(`/songs/`);
+        let response = await fetch("./songs/");
         if (!response.ok) throw new Error('Network response was not ok');
 
         let text = await response.text();
@@ -80,7 +80,7 @@ async function displayAlbums() {
         for (let e of anchors) {
             let folder = e.href.split("/").slice(-2)[0];
             try {
-                let albumInfoResponse = await fetch(`/songs/${folder}/info.json`);
+                let albumInfoResponse = await fetch(`./songs/${folder}/info.json`);
                 if (!albumInfoResponse.ok) continue;
 
                 let albumInfo = await albumInfoResponse.json();
@@ -92,7 +92,7 @@ async function displayAlbums() {
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M17.5 12L9.5 8V16L17.5 12Z" fill="black" />
                             </svg>
                         </div>
-                        <img src="/songs/${folder}/cover.jpeg" alt="Cover Image">
+                        <img src="./songs/${folder}/cover.jpeg" alt="Cover Image">
                         <h2>${albumInfo.title}</h2>
                         <p>${albumInfo.description}</p>
                     </div>`;
@@ -121,20 +121,20 @@ async function main() {
     document.querySelector("#playbtn").addEventListener("click", () => {
         if (currentSong.paused) {
             currentSong.play();
-            document.querySelector("#playbtn").src = "Images/pause.svg";
+            document.querySelector("#playbtn").src = "./Images/pause.svg";
         } else {
             currentSong.pause();
-            document.querySelector("#playbtn").src = "Images/play.svg";
+            document.querySelector("#playbtn").src = "./Images/play.svg";
         }
     });
 
     document.querySelector("#nextbtn").addEventListener("click", () => {
-        let index = songs.indexOf(currentSong.src.split("/").pop());
+        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").pop()));
         if (index + 1 < songs.length) playmusic(songs[index + 1]);
     });
 
     document.querySelector("#previousbtn").addEventListener("click", () => {
-        let index = songs.indexOf(currentSong.src.split("/").pop());
+        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").pop()));
         if (index > 0) playmusic(songs[index - 1]);
     });
 }
