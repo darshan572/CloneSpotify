@@ -16,7 +16,8 @@ function timeFormat(seconds) {
 async function getSongs(folder) {
     currFolder = folder;
     try {
-        let response = await fetch(`./${folder}/`);
+        // Adjust the fetch path based on your folder structure
+        let response = await fetch(`./songs/${folder}/`); // Ensure this path matches your structure
         if (!response.ok) throw new Error('Network response was not ok');
 
         let text = await response.text();
@@ -47,6 +48,7 @@ async function getSongs(folder) {
                 </li>`;
         }
 
+        // Set event listeners for each song item
         Array.from(songUL.getElementsByTagName("li")).forEach((e, index) => {
             e.addEventListener("click", () => {
                 playmusic(songs[index]);
@@ -59,7 +61,7 @@ async function getSongs(folder) {
 
 // Play selected track
 const playmusic = (track, pause = false) => {
-    currentSong.src = `./${currFolder}/${track}`;
+    currentSong.src = `./songs/${currFolder}/${track}`; // Ensure this path is correct
     if (!pause) {
         currentSong.play().catch(error => console.error('Error playing song:', error));
         document.querySelector("#playbtn").src = "./Images/pause.svg";
@@ -120,7 +122,7 @@ async function displayAlbums() {
 
 // Main function to initialize the app
 async function main() {
-    await getSongs("songs/happy");
+    await getSongs("happy"); // Adjusted to just the folder name if it's directly under "songs"
     displayAlbums();
 
     // Play button functionality
