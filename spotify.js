@@ -2,6 +2,11 @@ let currentSong = new Audio();
 let songs = [];
 let currFolder = "";
 
+const progressBar = document.querySelector(".progress-bar");
+const progressFill = document.querySelector(".progress-fill");
+const playTime = document.querySelector(".songtime");
+const playButton = document.querySelector("#playbtn");
+
 // Format time in mm:ss
 function timeFormat(seconds) {
     if (isNaN(seconds) || seconds < 0) {
@@ -20,10 +25,7 @@ async function getSongs(folder) {
         if (!response.ok) throw new Error('Network response was not ok');
 
         let data = await response.json();
-        
-        songs = data
-            .filter(item => item.name.endsWith(".mp3"))
-            .map(item => decodeURIComponent(item.name));
+        songs = data.filter(item => item.name.endsWith(".mp3")).map(item => decodeURIComponent(item.name));
 
         console.log('Fetched songs:', songs);
 
@@ -59,23 +61,45 @@ const playmusic = (track, pause = false) => {
     currentSong.src = `https://raw.githubusercontent.com/darshan572/CloneSpotify/main/${currFolder}/${track}`;
     if (!pause) {
         currentSong.play().catch(error => console.error('Error playing song:', error));
-        document.querySelector("#playbtn").src = "Images/pause.svg";
+        playButton.src = "Images/pause.svg";
     }
     document.querySelector(".songinfo").innerHTML = track;
-    document.querySelector(".songtime").innerHTML = "00:00 / 00:00";
+    playTime.innerHTML = "00:00 / 00:00";
+
+    // Update duration when metadata loads
+    currentSong.addEventListener("loadedmetadata", () => {
+        playTime.innerHTML = `00:00 / ${timeFormat(currentSong.duration)}`;
+    });
+
+    // Update progress bar during playback
+    currentSong.addEventListener("timeupdate", updateProgress);
 };
 
-// Display albums available using GitHub API
+// Update playbar progress
+function updateProgress() {
+    let progress = (currentSong.currentTime / currentSong.duration) * 100;
+    progressFill.style.width = `${progress}%`;
+    playTime.innerHTML = `${timeFormat(currentSong.currentTime)} / ${timeFormat(currentSong.duration)}`;
+}
+
+// Seek when user clicks on the playbar
+progressBar.addEventListener("click", (e) => {
+    let offsetX = e.offsetX;
+    let totalWidth = progressBar.clientWidth;
+    let seekTime = (offsetX / totalWidth) * currentSong.duration;
+    currentSong.currentTime = seekTime;
+});
+
+// Display albums using GitHub API
 async function displayAlbums() {
     try {
         let response = await fetch("https://api.github.com/repos/darshan572/CloneSpotify/contents/songs");
         if (!response.ok) throw new Error('Network response was not ok');
 
         let data = await response.json();
-        
         let cardContainer = document.querySelector(".cardContainer");
         cardContainer.innerHTML = "";
-        
+
         for (let e of data) {
             let folder = e.name;
             try {
@@ -84,7 +108,7 @@ async function displayAlbums() {
 
                 let albumInfoData = await albumInfoResponse.json();
                 let albumInfo = JSON.parse(atob(albumInfoData.content)); // Decode base64 content
-                
+
                 cardContainer.innerHTML += `
                     <div data-folder="songs/${folder}" class="card">
                         <div class="play">
@@ -119,25 +143,31 @@ async function main() {
     await getSongs("songs/happy");
     displayAlbums();
 
-    document.querySelector("#playbtn").addEventListener("click", () => {
+    // Play / Pause
+    playButton.addEventListener("click", () => {
         if (currentSong.paused) {
             currentSong.play();
-            document.querySelector("#playbtn").src = "Images/pause.svg";
+            playButton.src = "Images/pause.svg";
         } else {
             currentSong.pause();
-            document.querySelector("#playbtn").src = "Images/play.svg";
+            playButton.src = "Images/play.svg";
         }
     });
 
+    // Next Song
     document.querySelector("#nextbtn").addEventListener("click", () => {
-        let index = songs.indexOf(currentSong.src.split("/").pop());
+        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").pop()));
         if (index + 1 < songs.length) playmusic(songs[index + 1]);
     });
 
+    // Previous Song
     document.querySelector("#previousbtn").addEventListener("click", () => {
-        let index = songs.indexOf(currentSong.src.split("/").pop());
+        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").pop()));
         if (index > 0) playmusic(songs[index - 1]);
     });
+
+    // Update progress bar on time update
+    currentSong.addEventListener("timeupdate", updateProgress);
 }
 
 main();
