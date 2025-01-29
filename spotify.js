@@ -17,7 +17,7 @@ async function getSongs(folder) {
     currFolder = folder;
     try {
         // Adjust the fetch path based on your folder structure
-        let response = await fetch(`./songs/${folder}/`); // Ensure this path matches your structure
+        let response = await fetch(`https://darshan572.github.io/CloneSpotify/songs/${folder}/`); // Ensure this path matches your structure
         if (!response.ok) throw new Error('Network response was not ok');
 
         let text = await response.text();
@@ -61,7 +61,7 @@ async function getSongs(folder) {
 
 // Play selected track
 const playmusic = (track, pause = false) => {
-    currentSong.src = `./songs/${currFolder}/${track}`; // Ensure this path is correct
+    currentSong.src = `https://darshan572.github.io/CloneSpotify/songs/${currFolder}/${track}`; // Ensure this path is correct
     if (!pause) {
         currentSong.play().catch(error => console.error('Error playing song:', error));
         document.querySelector("#playbtn").src = "./Images/pause.svg";
@@ -73,7 +73,7 @@ const playmusic = (track, pause = false) => {
 // Display albums available
 async function displayAlbums() {
     try {
-        let response = await fetch("./songs/");
+        let response = await fetch("https://darshan572.github.io/CloneSpotify/songs/");
         if (!response.ok) throw new Error('Network response was not ok');
 
         let text = await response.text();
@@ -86,7 +86,7 @@ async function displayAlbums() {
         for (let e of anchors) {
             let folder = e.href.split("/").slice(-2)[0];
             try {
-                let albumInfoResponse = await fetch(`./songs/${folder}/info.json`);
+                let albumInfoResponse = await fetch(`https://darshan572.github.io/CloneSpotify/songs/${folder}/info.json`);
                 if (!albumInfoResponse.ok) continue;
 
                 let albumInfo = await albumInfoResponse.json();
@@ -98,7 +98,7 @@ async function displayAlbums() {
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M17.5 12L9.5 8V16L17.5 12Z" fill="black" />
                             </svg>
                         </div>
-                        <img src="./songs/${folder}/cover.jpeg" alt="Cover Image">
+                        <img src="https://darshan572.github.io/CloneSpotify/songs/${folder}/cover.jpeg" alt="Cover Image">
                         <h2>${albumInfo.title}</h2>
                         <p>${albumInfo.description}</p>
                     </div>`;
