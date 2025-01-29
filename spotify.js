@@ -2,6 +2,7 @@ let currentSong = new Audio();
 let songs = [];
 let currFolder = "";
 
+// Format time in mm:ss
 function timeFormat(seconds) {
     if (isNaN(seconds) || seconds < 0) {
         return "00:00";
@@ -11,22 +12,18 @@ function timeFormat(seconds) {
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 }
 
+// Fetch songs from a specific folder using GitHub API
 async function getSongs(folder) {
     currFolder = folder;
     try {
-        const url = `https://darshan572.github.io/CloneSpotify/${folder}/`;
-        console.log(`Fetching songs from: ${url}`); // Debugging line
-        let response = await fetch(url);
+        let response = await fetch(`https://api.github.com/repos/darshan572/CloneSpotify/contents/${folder}`);
         if (!response.ok) throw new Error('Network response was not ok');
 
-        let text = await response.text();
-        let div = document.createElement("div");
-        div.innerHTML = text;
-        let as = div.getElementsByTagName("a");
-
-        songs = Array.from(as)
-            .filter(element => element.href.endsWith(".mp3"))
-            .map(element => decodeURIComponent(element.href.split(`/${folder}/`).pop()));
+        let data = await response.json();
+        
+        songs = data
+            .filter(item => item.name.endsWith(".mp3"))
+            .map(item => decodeURIComponent(item.name));
 
         console.log('Fetched songs:', songs);
 
@@ -35,14 +32,14 @@ async function getSongs(folder) {
         for (const song of songs) {
             songUL.innerHTML += `
                 <li>
-                    <img class="invert" src="https://darshan572.github.io/CloneSpotify/Images/music.svg" alt="">
+                    <img class="invert" src="Images/music.svg" alt="">
                     <div class="info">
                         <div>${song.replace(/%20/g, " ")}</div>
                         <div>Unknown Artist</div>
                     </div>
                     <div class="playnow">
                         <span>Play Now</span>
-                        <img class="invert" src="https://darshan572.github.io/CloneSpotify/Images/play.svg" alt="">
+                        <img class="invert" src="Images/play.svg" alt="">
                     </div>
                 </li>`;
         }
@@ -57,40 +54,37 @@ async function getSongs(folder) {
     }
 }
 
+// Play selected track
 const playmusic = (track, pause = false) => {
-    currentSong.src = `https://darshan572.github.io/CloneSpotify/${currFolder}/${track}`;
+    currentSong.src = `https://raw.githubusercontent.com/darshan572/CloneSpotify/main/${currFolder}/${track}`;
     if (!pause) {
         currentSong.play().catch(error => console.error('Error playing song:', error));
-        document.querySelector("#playbtn").src = "https://darshan572.github.io/CloneSpotify/Images/pause.svg";
+        document.querySelector("#playbtn").src = "Images/pause.svg";
     }
     document.querySelector(".songinfo").innerHTML = track;
     document.querySelector(".songtime").innerHTML = "00:00 / 00:00";
 };
 
+// Display albums available using GitHub API
 async function displayAlbums() {
     try {
-        const url = "https://darshan572.github.io/CloneSpotify/songs/";
-        console.log(`Fetching albums from: ${url}`); // Debugging line
-        let response = await fetch(url);
+        let response = await fetch("https://api.github.com/repos/darshan572/CloneSpotify/contents/songs");
         if (!response.ok) throw new Error('Network response was not ok');
 
-        let text = await response.text();
-        let div = document.createElement("div");
-        div.innerHTML = text;
-        let anchors = div.getElementsByTagName("a");
+        let data = await response.json();
+        
         let cardContainer = document.querySelector(".cardContainer");
-
         cardContainer.innerHTML = "";
-        for (let e of anchors) {
-            let folder = e.href.split("/").slice(-2)[0];
+        
+        for (let e of data) {
+            let folder = e.name;
             try {
-                let albumInfoResponse = await fetch(`https://darshan572.github.io/CloneSpotify/songs/${folder}/info.json`);
-                if (!albumInfoResponse.ok) {
-                    console.warn(`Album info not found for folder: ${folder}`);
-                    continue;
-                }
+                let albumInfoResponse = await fetch(`https://api.github.com/repos/darshan572/CloneSpotify/contents/songs/${folder}/info.json`);
+                if (!albumInfoResponse.ok) continue;
 
-                let albumInfo = await albumInfoResponse.json();
+                let albumInfoData = await albumInfoResponse.json();
+                let albumInfo = JSON.parse(atob(albumInfoData.content)); // Decode base64 content
+                
                 cardContainer.innerHTML += `
                     <div data-folder="songs/${folder}" class="card">
                         <div class="play">
@@ -99,7 +93,7 @@ async function displayAlbums() {
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M17.5 12L9.5 8V16L17.5 12Z" fill="black" />
                             </svg>
                         </div>
-                        <img src="https://darshan572.github.io/CloneSpotify/songs/${folder}/cover.jpeg" alt="Cover Image">
+                        <img src="https://raw.githubusercontent.com/darshan572/CloneSpotify/main/songs/${folder}/cover.jpeg" alt="Cover Image">
                         <h2>${albumInfo.title}</h2>
                         <p>${albumInfo.description}</p>
                     </div>`;
@@ -120,28 +114,28 @@ async function displayAlbums() {
     }
 }
 
+// Main function to initialize the app
 async function main() {
     await getSongs("songs/happy");
-    if (songs.length > 0) playmusic(songs[0], true);
     displayAlbums();
 
     document.querySelector("#playbtn").addEventListener("click", () => {
         if (currentSong.paused) {
             currentSong.play();
-            document.querySelector("#playbtn").src = "https://darshan572.github.io/CloneSpotify/Images/pause.svg";
+            document.querySelector("#playbtn").src = "Images/pause.svg";
         } else {
             currentSong.pause();
-            document.querySelector("#playbtn").src = "https://darshan572.github.io/CloneSpotify/Images/play.svg";
+            document.querySelector("#playbtn").src = "Images/play.svg";
         }
     });
 
     document.querySelector("#nextbtn").addEventListener("click", () => {
-        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").pop()));
+        let index = songs.indexOf(currentSong.src.split("/").pop());
         if (index + 1 < songs.length) playmusic(songs[index + 1]);
     });
 
     document.querySelector("#previousbtn").addEventListener("click", () => {
-        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").pop()));
+        let index = songs.indexOf(currentSong.src.split("/").pop());
         if (index > 0) playmusic(songs[index - 1]);
     });
 }
