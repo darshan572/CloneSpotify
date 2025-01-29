@@ -14,7 +14,9 @@ function timeFormat(seconds) {
 async function getSongs(folder) {
     currFolder = folder;
     try {
-        let response = await fetch(`https://darshan572.github.io/CloneSpotify/${folder}/`);
+        const url = `https://darshan572.github.io/CloneSpotify/${folder}/`;
+        console.log(`Fetching songs from: ${url}`); // Debugging line
+        let response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
 
         let text = await response.text();
@@ -67,7 +69,9 @@ const playmusic = (track, pause = false) => {
 
 async function displayAlbums() {
     try {
-        let response = await fetch("https://darshan572.github.io/CloneSpotify/songs/");
+        const url = "https://darshan572.github.io/CloneSpotify/songs/";
+        console.log(`Fetching albums from: ${url}`); // Debugging line
+        let response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
 
         let text = await response.text();
@@ -81,7 +85,10 @@ async function displayAlbums() {
             let folder = e.href.split("/").slice(-2)[0];
             try {
                 let albumInfoResponse = await fetch(`https://darshan572.github.io/CloneSpotify/songs/${folder}/info.json`);
-                if (!albumInfoResponse.ok) continue;
+                if (!albumInfoResponse.ok) {
+                    console.warn(`Album info not found for folder: ${folder}`);
+                    continue;
+                }
 
                 let albumInfo = await albumInfoResponse.json();
                 cardContainer.innerHTML += `
